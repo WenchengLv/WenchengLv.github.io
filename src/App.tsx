@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { FinanceGuide } from './FinanceGuide'
+import { recordPageView, getPageViewStats } from './supabase'
 import './App.css'
 
 type TaxSettings = {
@@ -42,6 +43,24 @@ function calculateTax(salary: number, settings: TaxSettings) {
 function App() {
   const [salary, setSalary] = useState('12000')
   const [view, setView] = useState<'home' | 'calculator' | 'guide'>('home')
+  const [stats, setStats] = useState<any>(null)
+
+  // 记录页面浏览
+  useEffect(() => {
+    recordPageView(view)
+  }, [view])
+
+  // 定时刷新统计数据
+  useEffect(() => {
+    const loadStats = async () => {
+      const data = await getPageViewStats()
+      setStats(data)
+    }
+    
+    loadStats()
+    const interval = setInterval(loadStats, 5000) // 每5秒刷新一次
+    return () => clearInterval(interval)
+  }, [])
 
   const parsedSalary = Number(salary.replace(/,/g, ''))
   const validSalary = Number.isFinite(parsedSalary) ? parsedSalary : 0
@@ -71,6 +90,27 @@ function App() {
               <h3>理财指南</h3>
               <p>个人理财计划与基金选择技巧</p>
             </div>
+          </div>
+
+          {/* 浏览量统计面板 */}
+          <div className="stats-panel">
+            <div className="stats-title">📊 浏览统计 (Supabase)</div>
+            {stats && stats.length > 0 ? (
+              <div className="stats-content">
+                {stats.map((stat: any, idx: number) => (
+                  <div key={idx} className="stat-item">
+                    <span className="stat-page">📄 {stat.page_name || '未知页面'}</span>
+                    <span className="stat-count">访问次数: {stat.count || 1}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="stats-content">
+                <p className="stat-loading">
+                  {stats === null ? '正在加载统计数据...' : '暂无数据（Supabase 未配置）'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
