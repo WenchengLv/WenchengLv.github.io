@@ -24,7 +24,7 @@ const TAX_SETTINGS: TaxSettings = {
 function calculateTax(salary: number, settings: TaxSettings) {
   const taxableIncome = Math.max(0, salary - settings.standardDeduction - settings.additionalDeduction)
 
-  const bracket = settings.brackets.find((b) => taxableIncome <= b.threshold) ?? settings.brackets.at(-1)
+  const bracket = settings.brackets.find((b) => taxableIncome <= b.threshold) ?? settings.brackets[settings.brackets.length - 1]
   if (!bracket) return { tax: 0, effectiveRate: 0, afterTax: salary }
 
   const tax = taxableIncome * bracket.rate - bracket.quickDeduction
