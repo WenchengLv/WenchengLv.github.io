@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { FinanceGuide } from './FinanceGuide'
 import './App.css'
 
 type TaxSettings = {
@@ -40,7 +41,7 @@ function calculateTax(salary: number, settings: TaxSettings) {
 
 function App() {
   const [salary, setSalary] = useState('12000')
-  const [view, setView] = useState<'home' | 'calculator'>('home')
+  const [view, setView] = useState<'home' | 'calculator' | 'guide'>('home')
 
   const parsedSalary = Number(salary.replace(/,/g, ''))
   const validSalary = Number.isFinite(parsedSalary) ? parsedSalary : 0
@@ -54,17 +55,46 @@ function App() {
             <div>
               <p className="emoji">🏠</p>
               <div>
-                <h1>欢迎</h1>
-                <p className="subtitle">请选择“个税计算器”进入</p>
+                <h1>财务工具箱</h1>
+                <p className="subtitle">个税计算 / 理财指南</p>
               </div>
             </div>
           </div>
-          <div className="form-panel">
-            <p className="tip">这是一个 React + TypeScript 个税计算示例页面。</p>
-            <button className="index-btn" onClick={() => setView('calculator')}>
-              进入个税计算器
-            </button>
+          <div className="feature-grid">
+            <div className="feature-item" onClick={() => setView('calculator')}>
+              <div className="feature-icon">💼</div>
+              <h3>个税计算器</h3>
+              <p>快速计算个人所得税及税后收入</p>
+            </div>
+            <div className="feature-item" onClick={() => setView('guide')}>
+              <div className="feature-icon">📚</div>
+              <h3>理财指南</h3>
+              <p>个人理财计划与基金选择技巧</p>
+            </div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (view === 'guide') {
+    return (
+      <div className="app">
+        <div className="card">
+          <header className="header">
+            <div>
+              <p className="emoji">📚</p>
+              <div>
+                <h1>理财指南</h1>
+                <p className="subtitle">个人理财计划与基金选择</p>
+              </div>
+            </div>
+            <button className="index-btn" onClick={() => setView('home')}>
+              返回首页
+            </button>
+          </header>
+
+          <FinanceGuide />
         </div>
       </div>
     )
