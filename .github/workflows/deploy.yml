@@ -1,55 +1,36 @@
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main # 当推送到 main 分支时触发
+    branches: [main]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
         with:
-          node-version: '18' # 或者是你项目实际需要的版本，例如 '16'
-
-      - name: Cache Node Modules # 增加缓存，加快后续构建速度
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm # 或 ~/.cache/yarn
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} # 或 yarn.lock
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: '18'
 
       - name: Install dependencies
-        run: npm ci # npm ci 更适合 CI/CD 环境，确保使用 package-lock.json 中的精确版本
-        # 如果使用 yarn, run: yarn install --frozen-lockfile
+        run: npm ci
 
-      - name: Build project
+      - name: Build production
         run: npm run build
-        # 确认此步骤构建输出到正确的目录
-        # For create-react-app, this creates a `build` directory.
-        # For Vite, this creates a `dist` directory.
-
-      - name: Verify build directory contents # 调试步骤，帮助确认 build 目录是否存在
-        run: |
-          echo "Listing contents of current directory:"
-          ls -F
-          echo "Listing contents of build directory (or dist):"
-          ls -F dist/ # 替换为 dist/ 如果你用 Vite
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
-        if: success() # 仅当前面的所有步骤都成功时才部署
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist # 确保这个路径正确，如果是 Vite, 改为 ./dist
-          # 常用选项：
-          # publish_branch: gh-pages # 默认就是 gh-pages，可以不写
-          # cname: example.com # 如果有自定义域名
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          keep_files: false
