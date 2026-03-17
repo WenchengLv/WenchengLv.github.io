@@ -1,0 +1,32 @@
+# .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches:
+      - main # 当推送到 main 分支时触发
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # 使用最新的 Ubuntu 虚拟机
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # 检出仓库代码
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # 使用 Node.js 18 版本
+      - name: Install dependencies
+        run: npm install # 安装项目依赖
+        # 或者 run: yarn install
+      - name: Build project
+        run: npm run build # 运行构建命令
+        # 或者 run: yarn build
+        # 如果你使用的是 Vite，通常是 `npm run build` 或 `yarn build`，生成的文件夹是 `dist`
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3 # 使用 GitHub Actions 部署到 gh-pages
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # 自动提供的 GitHub Token
+          publish_dir: ./build # 指定要部署的文件夹，如果用 Vite 是 ./dist
+          # 如果你的 gh-pages 是用户/组织页 (即 https://<USERNAME>.github.io/)，
+          # 并且你希望直接部署到 main 分支，可以添加以下两行：
+          # publish_branch: main
+          # cname: example.com # 如果你有自定义域名
