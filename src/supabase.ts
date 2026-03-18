@@ -1,14 +1,33 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 从环境变量读取，或使用默认值
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+type AppEnv = {
+  VITE_SUPABASE_URL?: string
+  VITE_SUPABASE_ANON_KEY?: string
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+declare global {
+  interface Window {
+    __APP_ENV__?: AppEnv
+  }
+}
+
+function getRuntimeEnv(): AppEnv {
+  if (typeof window === 'undefined') return {}
+  return window.__APP_ENV__ ?? {}
+}
+
+// 仅从运行时配置读取，避免在构建产物中嵌入秘钥
+const runtimeEnv = getRuntimeEnv()
+const supabaseUrl = runtimeEnv.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = runtimeEnv.VITE_SUPABASE_ANON_KEY || ''
+
+export const supabase = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
 
 // 记录浏览量
 export async function recordPageView(pageName: string) {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabase) {
     console.warn('Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
     return
   }
@@ -33,9 +52,14 @@ export async function recordPageView(pageName: string) {
   }
 }
 
+// 记录计算按钮点击次数
+export async function recordCalculateClick() {
+  await recordPageView('calculate_click')
+}
+
 // 获取浏览量统计
 export async function getPageViewStats(pageName?: string) {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabase) {
     console.warn('Supabase not configured')
     return null
   }
