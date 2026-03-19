@@ -16,10 +16,17 @@ function getRuntimeEnv(): AppEnv {
   return window.__APP_ENV__ ?? {}
 }
 
-// 仅从运行时配置读取，避免在构建产物中嵌入秘钥
+function pickEnvValue(...values: Array<string | undefined>): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return ''
+}
+
+// 优先读取运行时配置，缺失时回退到 Vite 环境变量，兼容本地开发与静态部署。
 const runtimeEnv = getRuntimeEnv()
-const supabaseUrl = runtimeEnv.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = runtimeEnv.VITE_SUPABASE_ANON_KEY || ''
+const supabaseUrl = pickEnvValue(runtimeEnv.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_URL)
+const supabaseAnonKey = pickEnvValue(runtimeEnv.VITE_SUPABASE_ANON_KEY, import.meta.env.VITE_SUPABASE_ANON_KEY)
 
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
