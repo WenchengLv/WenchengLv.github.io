@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 type AppEnv = {
   VITE_SUPABASE_URL?: string
@@ -31,6 +32,80 @@ const supabaseAnonKey = pickEnvValue(runtimeEnv.VITE_SUPABASE_ANON_KEY, import.m
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
+
+export async function getCurrentSession() {
+  if (!supabase) {
+    return { data: { session: null }, error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.getSession()
+}
+
+export function onAuthStateChange(
+  callback: (event: AuthChangeEvent, session: Session | null) => void
+) {
+  if (!supabase) {
+    return {
+      data: {
+        subscription: {
+          unsubscribe: () => undefined
+        }
+      }
+    }
+  }
+
+  return supabase.auth.onAuthStateChange(callback)
+}
+
+export async function signInWithPassword(email: string, password: string) {
+  if (!supabase) {
+    return { data: { user: null, session: null }, error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.signInWithPassword({
+    email,
+    password
+  })
+}
+
+export async function signUpWithPassword(email: string, password: string) {
+  if (!supabase) {
+    return { data: { user: null, session: null }, error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.signUp({
+    email,
+    password
+  })
+}
+
+export async function signOutUser() {
+  if (!supabase) {
+    return { error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.signOut()
+}
+
+export async function sendPasswordResetEmail(email: string, redirectTo?: string) {
+  if (!supabase) {
+    return { data: {}, error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo
+  })
+}
+
+export async function updateUserPassword(password: string) {
+  if (!supabase) {
+    return { data: { user: null }, error: new Error('Supabase not configured') }
+  }
+
+  return supabase.auth.updateUser({
+    password
+  })
+}
 
 // 记录浏览量
 export async function recordPageView(pageName: string) {
