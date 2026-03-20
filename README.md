@@ -49,14 +49,13 @@ npm run preview
 # 1. 本地构建
 npm run build
 
-# 2. 复制到 docs 文件夹
-cp -r dist/* docs/
-
-# 3. 提交到 GitHub
+# 2. 提交到 GitHub
 git add docs
 git commit -m "build: update production build"
 git push origin main
 ```
+
+> 自定义域名通过 `public/CNAME` 保留，构建时会自动输出到 `docs/CNAME`。
 
 ## 🔌 Supabase 浏览量统计（可选）
 
